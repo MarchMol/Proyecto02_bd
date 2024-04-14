@@ -24,6 +24,23 @@ INSERT INTO empleados (id_empleado, nombre, rol, area) VALUES
 ('E009', 'Diego Herrera', 'Cocinero', 'A01'),
 ('E010', 'Sofia Gómez', 'Mesera', 'A01');
 
+-- Insert de contraseñas
+UPDATE empleados
+SET contrasena =
+    CASE 
+        WHEN id_empleado = 'E001' THEN crypt('111', gen_salt('bf'))
+	    WHEN id_empleado = 'E002' THEN crypt('222', gen_salt('bf'))
+	    WHEN id_empleado = 'E003' THEN crypt('333', gen_salt('bf'))
+	    WHEN id_empleado = 'E004' THEN crypt('444', gen_salt('bf'))
+	    WHEN id_empleado = 'E005' THEN crypt('555', gen_salt('bf'))
+	    WHEN id_empleado = 'E006' THEN crypt('666', gen_salt('bf'))
+	    WHEN id_empleado = 'E007' THEN crypt('777', gen_salt('bf'))
+	    WHEN id_empleado = 'E008' THEN crypt('888', gen_salt('bf'))
+	    WHEN id_empleado = 'E009' THEN crypt('999', gen_salt('bf'))
+	    WHEN id_empleado = 'E010' THEN crypt('1010', gen_salt('bf'))
+        ELSE NULL
+    END
+
 -- Inserts para la tabla menu
 INSERT INTO menu (id_alimento, nombre, descripcion, precio) VALUES
 ('M001', 'Hamburguesa Clásica', 'Hamburguesa de carne de res con queso, lechuga y tomate.', 8.99),
