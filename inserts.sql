@@ -106,6 +106,13 @@ INSERT INTO encuestas (id_encuesta, amabilidad, exactitud, cuenta, fecha) VALUES
 ('E009', 4, 5, 'C009', '2024-04-14'),
 ('E010', 5, 5, 'C010', '2024-04-15');
 
+UPDATE encuestas
+SET empleado = 'E001' WHERE id_encuesta IN ('E001', 'E002');
+UPDATE encuestas
+SET empleado = 'E004' WHERE id_encuesta IN ('E003', 'E004', 'E005', 'E006');
+UPDATE encuestas
+SET empleado = 'E008' WHERE id_encuesta IN ('E007', 'E008', 'E009', 'E010');
+
 -- Inserts para la tabla quejas
 INSERT INTO quejas (id_queja, nombre, fecha, motivo, gravedad, empleado, alimento) VALUES
 ('Q001', 'Ana', '2024-04-13', 'Servicio lento', 3, 'E001', NULL),
