@@ -93,6 +93,17 @@ INSERT INTO cuentas (id_cuenta, estado, tiempo_abierta, tiempo_carrada, mesa) VA
 ('C009', false, '2024-04-14 08:15:00', '2024-04-14 08:45:00', 'M007'),
 ('C010', true, '2024-04-15 10:00:00', NULL, 'M009');
 
+UPDATE cuentas
+SET personas = 4 WHERE id_cuenta IN ('C001', 'C008');
+UPDATE cuentas
+SET personas = 3 WHERE id_cuenta IN ('C004','C005');
+UPDATE cuentas
+SET personas = 5 WHERE id_cuenta ='C006';
+UPDATE cuentas
+SET personas = 6 WHERE id_cuenta IN ('C009','C002');
+UPDATE cuentas
+SET personas = 8 WHERE id_cuenta IN ('C007','C003','C010');
+
 -- Inserts para la tabla encuestas
 INSERT INTO encuestas (id_encuesta, amabilidad, exactitud, cuenta, fecha) VALUES
 ('E001', 4, 5, 'C001', '2024-04-12'),

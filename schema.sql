@@ -77,6 +77,10 @@ ALTER TABLE cuentas
 ADD CONSTRAINT fk_cuenta_mesa
 FOREIGN KEY (mesa)
 REFERENCES mesas(id_mesa);
+
+Alter table cuentas
+Add personas INT;
+
 -- \Cuentas
 
 -- Encuesta
