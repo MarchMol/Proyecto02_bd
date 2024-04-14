@@ -17,7 +17,7 @@ CREATE TABLE empleados(
     id_empleado VARCHAR(10) PRIMARY KEY,
     nombre VARCHAR(50),
     rol VARCHAR(50),
-    area VARCHAR(10) NULL --FK
+    area VARCHAR(10) NULL, --FK
     contrasena CHAR(60)
 );
 ALTER TABLE empleados
@@ -91,6 +91,9 @@ ALTER TABLE encuestas
 ADD CONSTRAINT fk_encuesta_cuenta
 FOREIGN KEY (cuenta)
 REFERENCES cuentas(id_cuenta);
+
+ALTER TABLE encuestas
+ADD empleado VARCHAR(10);
 -- \Encuesta
 
 -- Quejas
