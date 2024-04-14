@@ -2,7 +2,7 @@ import sys
 sys.path.append('\\src')
 
 from src import db
-
+from restaurante import RestaurantManagementApp 
 import tkinter as tk
 from tkinter import messagebox
 from tkinter import ttk
@@ -14,8 +14,10 @@ def event_login(user_entry,password_entry, root):
     if(len(username)!= 0 and len(password)!= 0):
         try:
             if db.LogIn(username,password):
-                messagebox.showinfo("Login Successful", "Main page goes here")
-                root.destroy()
+                messagebox.showinfo("Login Successful", "Bienvenido al sistema")
+                root.destroy()  # Cierra la ventana de login
+                app = RestaurantManagementApp()  # Inicia la aplicación principal
+                app.mainloop()  # Muestra la ventana principal
             else:
                 messagebox.showerror("Login Failed", "Invalid username or password")
                 user_entry.delete(0,tk.END)
