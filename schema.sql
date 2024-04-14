@@ -1,6 +1,9 @@
 -- TABLAS Y LLAVES --
 
 BEGIN;
+
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
 -- Areas
 CREATE TABLE areas(
     id_area VARCHAR(10) PRIMARY KEY,
@@ -15,6 +18,7 @@ CREATE TABLE empleados(
     nombre VARCHAR(50),
     rol VARCHAR(50),
     area VARCHAR(10) NULL --FK
+    contrasena CHAR(60)
 );
 ALTER TABLE empleados
 ADD CONSTRAINT fk_areas_empleados
@@ -141,3 +145,25 @@ REFERENCES cuentas(id_cuenta);
 -- \Pedidos
 
 COMMIT;
+
+
+
+--- PROCEDIMIENTOS
+
+CREATE OR REPLACE FUNCTION auth_credentials(username VARCHAR(10), password VARCHAR(50))
+RETURNS BOOLEAN AS
+$$
+DECLARE
+    user_exists BOOLEAN;
+BEGIN
+    SELECT EXISTS (
+        SELECT 1
+        FROM empleados
+        WHERE id_empleado = username AND contrasena = crypt(password, contrasena)
+    ) INTO user_exists;
+    RETURN user_exists;
+END;
+$$
+LANGUAGE plpgsql;
+---
+
