@@ -45,8 +45,12 @@ class RestaurantManagementApp(tk.Tk):
         self.tab_control.add(tab, text='Cocina')
         ttk.Label(tab, text='Pedidos en Cocina', font=('Helvetica', 18, 'bold')).pack(pady=20)
         
-        self.listbox_kitchen = tk.Listbox(tab, height=15, width=50, font=('Helvetica', 12))
-        self.listbox_kitchen.pack(pady=20)
+        # Crear el Treeview widget
+        self.treeview_kitchen = ttk.Treeview(tab, columns=( 'nombre', 'tiempo'), show='headings')
+        self.treeview_kitchen.heading('nombre', text='Nombre')
+        self.treeview_kitchen.heading('tiempo', text='Tiempo')
+        self.treeview_kitchen.pack(fill='x', expand=True)
+        
         ttk.Button(tab, text="Actualizar Lista", command=self.update_kitchen_orders).pack(pady=10)
         self.update_kitchen_orders()  # Cargar inicialmente los pedidos
 
@@ -55,22 +59,34 @@ class RestaurantManagementApp(tk.Tk):
         self.tab_control.add(tab, text='Bar')
         ttk.Label(tab, text='Pedidos en Bar', font=('Helvetica', 18, 'bold')).pack(pady=20)
         
-        self.listbox_bar = tk.Listbox(tab, height=15, width=50, font=('Helvetica', 12))
-        self.listbox_bar.pack(pady=20)
+        # Crear el Treeview widget
+        self.treeview_bar = ttk.Treeview(tab, columns=('nombre', 'tiempo'), show='headings')
+        self.treeview_bar.heading('nombre', text='Nombre')
+        self.treeview_bar.heading('tiempo', text='Tiempo')
+        self.treeview_bar.pack(fill='x', expand=True)
+        
         ttk.Button(tab, text="Actualizar Lista", command=self.update_bar_orders).pack(pady=10)
         self.update_bar_orders()  # Cargar inicialmente los pedidos
 
     def update_kitchen_orders(self):
-        self.listbox_kitchen.delete(0, tk.END)  # Limpiar lista actual
-        orders = db.fetch_kitchen_orders()  # Suponiendo que esta función existe y trae los pedidos de cocina
+        # Primero limpiamos la tabla
+        for i in self.treeview_kitchen.get_children():
+            self.treeview_kitchen.delete(i)
+        
+        # Suponemos que fetch_kitchen_orders devuelve una lista de tuplas
+        orders = db.fetch_kitchen_orders() 
         for order in orders:
-            self.listbox_kitchen.insert(tk.END, order)
+            self.treeview_kitchen.insert('', 'end', values=order)
 
     def update_bar_orders(self):
-        self.listbox_bar.delete(0, tk.END)  # Limpiar lista actual
-        orders = db.fetch_bar_orders()  # Suponiendo que esta función existe y trae los pedidos del bar
+        # Primero limpiamos la tabla
+        for i in self.treeview_bar.get_children():
+            self.treeview_bar.delete(i)
+        
+        # Suponemos que fetch_bar_orders devuelve una lista de tuplas
+        orders = db.fetch_bar_orders()  
         for order in orders:
-            self.listbox_bar.insert(tk.END, order)
+            self.treeview_bar.insert('', 'end', values=order)
 
 
     def create_reports_tab(self):

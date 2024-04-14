@@ -56,7 +56,7 @@ def fetch_kitchen_orders():
     try:
         with connection() as con:
             with con.cursor() as cursor:
-                query = "SELECT p.alimento, m.nombre, p.tiempo FROM pedidos p JOIN menu m ON p.alimento = m.id_alimento JOIN cuentas c ON p.cuenta = c.id_cuenta JOIN mesas me ON c.mesa = me.id_mesa WHERE m.descripcion NOT LIKE '%bebida%' ORDER BY p.tiempo;"
+                query = "SELECT m.nombre, p.tiempo FROM pedidos p JOIN menu m ON p.alimento = m.id_alimento JOIN cuentas c ON p.cuenta = c.id_cuenta JOIN mesas me ON c.mesa = me.id_mesa WHERE m.tipo NOT LIKE '%Bebida%' ORDER BY p.tiempo;"
                 cursor.execute(query)
                 return cursor.fetchall()
     except Exception as e:
@@ -68,7 +68,7 @@ def fetch_bar_orders():
     try:
         with connection() as con:
             with con.cursor() as cursor:
-                query = "SELECT p.alimento, m.nombre, p.tiempo FROM pedidos p JOIN menu m ON p.alimento = m.id_alimento JOIN cuentas c ON p.cuenta = c.id_cuenta JOIN mesas me ON c.mesa = me.id_mesa WHERE m.descripcion LIKE '%bebida%' ORDER BY p.tiempo;"
+                query = "SELECT m.nombre, p.tiempo FROM pedidos p JOIN menu m ON p.alimento = m.id_alimento JOIN cuentas c ON p.cuenta = c.id_cuenta JOIN mesas me ON c.mesa = me.id_mesa WHERE m.tipo LIKE '%Bebida%' ORDER BY p.tiempo;"
                 cursor.execute(query)
                 return cursor.fetchall()
     except Exception as e:
