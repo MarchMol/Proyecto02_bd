@@ -90,31 +90,269 @@ class RestaurantManagementApp(tk.Tk):
 
 
     def create_reports_tab(self):
-        tab = ttk.Frame(self.tab_control)
-        self.tab_control.add(tab, text='Reportes')
+    # Create the main "Reportes" tab
+        reports_tab = ttk.Frame(self.tab_control)
+        self.tab_control.add(reports_tab, text='Reportes')
 
-        ttk.Label(tab, text='Generar y Visualizar Reportes', font=('Helvetica', 18, 'bold')).pack(pady=20)
-        ttk.Button(tab, text="Reporte de Platos Más Pedidos", command=self.report_most_ordered).pack(pady=10)
-        ttk.Button(tab, text="Reporte de Horarios de Pedidos", command=self.report_order_times).pack(pady=10)
-        ttk.Button(tab, text="Reporte de Tiempos de Comida", command=self.report_meal_times).pack(pady=10)
-        ttk.Button(tab, text="Reporte de Quejas", command=self.report_complaints).pack(pady=10)
+    # Create a Notebook widget to contain individual report tabs
+        reports_notebook = ttk.Notebook(reports_tab)
+        reports_notebook.pack(expand=1, fill='both')
 
+        # Define the reports and their corresponding functions
+        reports = {
+            "Platos Más Pedidos": self.create_platos_mas_pedidos_tab,
+            "Horarios de Pedidos": self.create_horarios_pedidos_tab,
+            "Tiempos de Comida": self.create_tiempos_comida_tab,
+            "Quejas por Persona": self.create_quejas_persona_tab,
+            "Quejas por Plato": self.create_quejas_plato_tab,
+            "Eficiencia de Meseros": self.create_eficiencia_meseros_tab
+        }
+    
+    # Iterate over each report and create a tab for it
+        for report_name, create_tab_function in reports.items():
+            report_tab = ttk.Frame(reports_notebook)
+            reports_notebook.add(report_tab, text=report_name)
+        
+            # Call the corresponding function to create the report tab
+            create_tab_function(report_tab)
+    
+            
     def add_to_order(self, table_entry, dish_combobox, quantity_entry):
         # Placeholder para lógica de adición al pedido
         print(f"Pedido agregado: Mesa {table_entry.get()}, Plato {dish_combobox.get()}, Cantidad {quantity_entry.get()}")
 
-    def report_most_ordered(self):
-        messagebox.showinfo("Reporte", "Los platos más ordenados son...")
+    def create_platos_mas_pedidos_tab(self, tab):
+        ttk.Label(tab, text='Reporte de los platos más pedidos por los clientes', font=('Helvetica', 16, 'bold')).pack(pady=20)
+        form_frame = ttk.Frame(tab, padding=(20, 10))
+        form_frame.pack(pady=10, fill='x')
 
-    def report_order_times(self):
-        messagebox.showinfo("Reporte", "Horarios de mayor pedido...")
+        ttk.Label(form_frame, text="Fecha inicial:").grid(row=0, column=0, padx=10, pady=10, sticky='e')
+        fecha_inicial = ttk.Entry(form_frame)
+        fecha_inicial.grid(row=0, column=1, padx=10, pady=10, sticky='w')
 
-    def report_meal_times(self):
-        messagebox.showinfo("Reporte", "Promedio de tiempos de comida...")
+        ttk.Label(form_frame, text="Fecha final:").grid(row=1, column=0, padx=10, pady=10, sticky='e')
+        fecha_final = ttk.Entry(form_frame)
+        fecha_final.grid(row=1, column=1, padx=10, pady=10, sticky='w')
+    
+        # Function to generate the report
+        def generate_report():
+            # Get the start and end dates from the entry fields
+            start_date = fecha_inicial.get()
+            end_date = fecha_final.get()
+        
+            # Call the function from the database and populate the treeview
+            report_data = db.PlatosMasPedidos(start_date, end_date)
+            if report_data:
+                # Clear the existing data in the treeview
+                for item in self.treeview_R1.get_children():
+                    self.treeview_R1.delete(item)
+            
+                # Insert the new data into the treeview
+                for row in report_data:
+                    self.treeview_R1.insert('', 'end', values=row)
 
-    def report_complaints(self):
-        messagebox.showinfo("Reporte", "Detalles de las quejas recibidas...")
+        # Button to generate the report
+        generate_button = ttk.Button(form_frame, text="Generar Reporte", command=generate_report)
+        generate_button.grid(row=2, columnspan=2, pady=20)
 
+        # Create the treeview widget to display report data
+        self.treeview_R1 = ttk.Treeview(tab, columns=('alimentos', 'pedidos'), show='headings')
+        self.treeview_R1.heading('alimentos', text='Alimentos')
+        self.treeview_R1.heading('pedidos', text='Cantidad de Pedidos')
+        self.treeview_R1.pack(fill='x', expand=True)
+        
+        
+    
+    def create_horarios_pedidos_tab(self, tab):
+        ttk.Label(tab, text='Horario en el que se ingresan más pedidos', font=('Helvetica', 16, 'bold')).pack(pady=20)
+        form_frame = ttk.Frame(tab, padding=(20, 10))
+        form_frame.pack(pady=10, fill='x')
+
+        ttk.Label(form_frame, text="Fecha inicial:").grid(row=0, column=0, padx=10, pady=10, sticky='e')
+        fecha_inicial = ttk.Entry(form_frame)
+        fecha_inicial.grid(row=0, column=1, padx=10, pady=10, sticky='w')
+
+        ttk.Label(form_frame, text="Fecha final:").grid(row=1, column=0, padx=10, pady=10, sticky='e')
+        fecha_final = ttk.Entry(form_frame)
+        fecha_final.grid(row=1, column=1, padx=10, pady=10, sticky='w')
+    
+        # Function to generate the report
+        def generate_report():
+            # Get the start and end dates from the entry fields
+            start_date = fecha_inicial.get()
+            end_date = fecha_final.get()
+        
+            # Call the function from the database and populate the treeview
+            report_data = db.HorariosMasPedidos(start_date, end_date)
+            if report_data:
+                # Clear the existing data in the treeview
+                for item in self.treeview_R2.get_children():
+                    self.treeview_R2.delete(item)
+            
+                # Insert the new data into the treeview
+                for row in report_data:
+                    self.treeview_R2.insert('', 'end', values=row)
+
+        # Button to generate the report
+        generate_button = ttk.Button(form_frame, text="Generar Reporte", command=generate_report)
+        generate_button.grid(row=2, columnspan=2, pady=20)
+
+        # Create the treeview widget to display report data
+        self.treeview_R2 = ttk.Treeview(tab, columns=('horario', 'pedidos'), show='headings')
+        self.treeview_R2.heading('horario', text='Horario')
+        self.treeview_R2.heading('pedidos', text='Cantidad de Pedidos')
+        self.treeview_R2.pack(fill='x', expand=True)
+    
+    def create_tiempos_comida_tab(self, tab):
+        ttk.Label(tab, text='Promedio de tiempo en que se tardan los clientes en comer', font=('Helvetica', 16, 'bold')).pack(pady=20)
+        form_frame = ttk.Frame(tab, padding=(20, 10))
+        form_frame.pack(pady=10, fill='x')
+
+        ttk.Label(form_frame, text="Fecha inicial:").grid(row=0, column=0, padx=10, pady=10, sticky='e')
+        fecha_inicial = ttk.Entry(form_frame)
+        fecha_inicial.grid(row=0, column=1, padx=10, pady=10, sticky='w')
+
+        ttk.Label(form_frame, text="Fecha final:").grid(row=1, column=0, padx=10, pady=10, sticky='e')
+        fecha_final = ttk.Entry(form_frame)
+        fecha_final.grid(row=1, column=1, padx=10, pady=10, sticky='w')
+    
+        # Function to generate the report
+        def generate_report():
+            # Get the start and end dates from the entry fields
+            start_date = fecha_inicial.get()
+            end_date = fecha_final.get()
+        
+            # Call the function from the database and populate the treeview
+            report_data = db.TiempoPromedio(start_date, end_date)
+            if report_data:
+                # Clear the existing data in the treeview
+                for item in self.treeview_R3.get_children():
+                    self.treeview_R3.delete(item)
+            
+                # Insert the new data into the treeview
+                for row in report_data:
+                    self.treeview_R3.insert('', 'end', values=row)
+
+        # Button to generate the report
+        generate_button = ttk.Button(form_frame, text="Generar Reporte", command=generate_report)
+        generate_button.grid(row=2, columnspan=2, pady=20)
+
+        # Create the treeview widget to display report data
+        self.treeview_R3 = ttk.Treeview(tab, columns=('personas', 'tiempo'), show='headings')
+        self.treeview_R3.heading('personas', text='Cantidad de Personas')
+        self.treeview_R3.heading('tiempo', text='Tiempo Promedio')
+        self.treeview_R3.pack(fill='x', expand=True)
+    
+    def create_quejas_persona_tab(self, tab):
+        ttk.Label(tab, text='Reporte de las quejas agrupadas por persona', font=('Helvetica', 16, 'bold')).pack(pady=20)
+        form_frame = ttk.Frame(tab, padding=(20, 10))
+        form_frame.pack(pady=10, fill='x')
+
+        ttk.Label(form_frame, text="Fecha inicial:").grid(row=0, column=0, padx=10, pady=10, sticky='e')
+        fecha_inicial = ttk.Entry(form_frame)
+        fecha_inicial.grid(row=0, column=1, padx=10, pady=10, sticky='w')
+
+        ttk.Label(form_frame, text="Fecha final:").grid(row=1, column=0, padx=10, pady=10, sticky='e')
+        fecha_final = ttk.Entry(form_frame)
+        fecha_final.grid(row=1, column=1, padx=10, pady=10, sticky='w')
+    
+        # Function to generate the report
+        def generate_report():
+            # Get the start and end dates from the entry fields
+            start_date = fecha_inicial.get()
+            end_date = fecha_final.get()
+        
+            # Call the function from the database and populate the treeview
+            report_data = db.QuejasPersonas(start_date, end_date)
+            if report_data:
+                # Clear the existing data in the treeview
+                for item in self.treeview_R4.get_children():
+                    self.treeview_R4.delete(item)
+            
+                # Insert the new data into the treeview
+                for row in report_data:
+                    self.treeview_R4.insert('', 'end', values=row)
+
+        # Button to generate the report
+        generate_button = ttk.Button(form_frame, text="Generar Reporte", command=generate_report)
+        generate_button.grid(row=2, columnspan=2, pady=20)
+
+        # Create the treeview widget to display report data
+        self.treeview_R4 = ttk.Treeview(tab, columns=('Persona', 'queja'), show='headings')
+        self.treeview_R4.heading('Persona', text='Personas')
+        self.treeview_R4.heading('queja', text='Cantidad de Quejas')
+        self.treeview_R4.pack(fill='x', expand=True)
+    
+    def create_quejas_plato_tab(self, tab):
+        ttk.Label(tab, text='Reporte de las quejas agrupadas por plato', font=('Helvetica', 16, 'bold')).pack(pady=20)
+        form_frame = ttk.Frame(tab, padding=(20, 10))
+        form_frame.pack(pady=10, fill='x')
+
+        ttk.Label(form_frame, text="Fecha inicial:").grid(row=0, column=0, padx=10, pady=10, sticky='e')
+        fecha_inicial = ttk.Entry(form_frame)
+        fecha_inicial.grid(row=0, column=1, padx=10, pady=10, sticky='w')
+
+        ttk.Label(form_frame, text="Fecha final:").grid(row=1, column=0, padx=10, pady=10, sticky='e')
+        fecha_final = ttk.Entry(form_frame)
+        fecha_final.grid(row=1, column=1, padx=10, pady=10, sticky='w')
+    
+        # Function to generate the report
+        def generate_report():
+            # Get the start and end dates from the entry fields
+            start_date = fecha_inicial.get()
+            end_date = fecha_final.get()
+        
+            # Call the function from the database and populate the treeview
+            report_data = db.QuejasporPlato(start_date, end_date)
+            if report_data:
+                # Clear the existing data in the treeview
+                for item in self.treeview_R5.get_children():
+                    self.treeview_R5.delete(item)
+            
+                # Insert the new data into the treeview
+                for row in report_data:
+                    self.treeview_R5.insert('', 'end', values=row)
+
+        # Button to generate the report
+        generate_button = ttk.Button(form_frame, text="Generar Reporte", command=generate_report)
+        generate_button.grid(row=2, columnspan=2, pady=20)
+
+        # Create the treeview widget to display report data
+        self.treeview_R5 = ttk.Treeview(tab, columns=('plato', 'quejas'), show='headings')
+        self.treeview_R5.heading('plato', text='Platos')
+        self.treeview_R5.heading('quejas', text='Cantidad de Quejas')
+        self.treeview_R5.pack(fill='x', expand=True)
+    
+    def create_eficiencia_meseros_tab(self, tab):
+        ttk.Label(tab, text='Reporte de eficiencia de meseros (6 últimos meses)', font=('Helvetica', 16, 'bold')).pack(pady=20)
+        form_frame = ttk.Frame(tab, padding=(20, 10))
+        form_frame.pack(pady=10, fill='x')
+
+        # Function to generate the report
+        def generate_report():
+            # Call the function from the database and populate the treeview
+            report_data = db.Eficiencia()
+            if report_data:
+                # Clear the existing data in the treeview
+                for item in self.treeview_R6.get_children():
+                    self.treeview_R6.delete(item)
+        
+                # Insert the new data into the treeview
+                for row in report_data:
+                    self.treeview_R6.insert('', 'end', values=row)
+
+        # Button to generate the report
+        generate_button = ttk.Button(form_frame, text="Generar Reporte", command=generate_report)
+        generate_button.pack(pady=20)
+
+        # Create the treeview widget to display report data
+        self.treeview_R6 = ttk.Treeview(tab, columns=('año', 'mes', 'mesero', 'amabilidad_promedio', 'exactitud_promedio'), show='headings')
+        self.treeview_R6.heading('año', text='Año')
+        self.treeview_R6.heading('mes', text='Mes')
+        self.treeview_R6.heading('mesero', text='Mesero')
+        self.treeview_R6.heading('amabilidad_promedio', text='Amabilidad Promedio')
+        self.treeview_R6.heading('exactitud_promedio', text='Exactitud Promedio')
+        self.treeview_R6.pack(fill='x', expand=True)
 if __name__ == "__main__":
     app = RestaurantManagementApp()
     app.mainloop()

@@ -74,3 +74,88 @@ def fetch_bar_orders():
     except Exception as e:
         print('Error fetching bar orders:', e)
         return []
+    
+# Reporte 1
+def PlatosMasPedidos(fecha_inicio, fecha_fin):
+    try: 
+        con = connection()  
+        cursor = con.cursor()
+        query = "select*from reporte_platos_mas_pedidos(%s, %s);"
+        cursor.execute(query,(fecha_inicio, fecha_fin))
+        result = cursor.fetchall()
+        cursor.close()
+        con.close()
+        return result
+    except:
+        print('Ocurrio un error.')
+        return False
+# Reporte 2
+def HorariosMasPedidos(fecha_inicio, fecha_fin):
+    try: 
+        con = connection()  
+        cursor = con.cursor()
+        query = "SELECT * FROM reporte_horario_pedido(%s, %s);"
+        cursor.execute(query,(fecha_inicio, fecha_fin))
+        result = cursor.fetchall()
+        cursor.close()
+        con.close()
+        return result
+    except:
+        print('Ocurrio un error.')
+        return False
+# Reporte 3
+def TiempoPromedio(fecha_inicio, fecha_fin):
+    try: 
+        con = connection()  
+        cursor = con.cursor()
+        query = "select*from reporte_tiempo_promedio_comer(%s, %s);"
+        cursor.execute(query,(fecha_inicio, fecha_fin))
+        result = cursor.fetchall()
+        cursor.close()
+        con.close()
+        return result
+    except:
+        print('Ocurrio un error.')
+        return False
+# Reporte 4
+def QuejasPersonas(fecha_inicio, fecha_fin):
+    try: 
+        con = connection()  
+        cursor = con.cursor()
+        query = "select*from reporte_quejas_por_persona(%s, %s);"
+        cursor.execute(query,(fecha_inicio, fecha_fin))
+        result = cursor.fetchall()
+        cursor.close()
+        con.close()
+        return result
+    except:
+        print('Ocurrio un error.')
+        return False
+# Reporte 5
+def QuejasporPlato(fecha_inicio, fecha_fin):
+    try: 
+        con = connection()  
+        cursor = con.cursor()
+        query = "select*from reporte_quejas_por_plato(%s, %s);"
+        cursor.execute(query,(fecha_inicio, fecha_fin))
+        result = cursor.fetchall()
+        cursor.close()
+        con.close()
+        return result
+    except:
+        print('Ocurrio un error.')
+        return False
+# Reporte 6
+def Eficiencia():
+    try: 
+        con = connection()  
+        cursor = con.cursor()
+        query = "select*from reporte_eficiencia_meseros();"
+        cursor.execute(query)
+        result = cursor.fetchall()
+        cursor.close()
+        con.close()
+        return result
+    except:
+        print('Ocurrio un error')
+        return False
