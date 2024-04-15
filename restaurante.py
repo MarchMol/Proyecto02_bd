@@ -6,7 +6,7 @@ class RestaurantManagementApp(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title('Sistema de Gestión del Restaurante')
-        self.geometry('800x400')  # Ajusta según la resolución deseada
+        self.geometry('1000x400')  
 
         self.style = ttk.Style(self)
         self.style.theme_use('clam')  # Tema visual para los widgets ttk
@@ -15,6 +15,7 @@ class RestaurantManagementApp(tk.Tk):
         self.create_order_tab()
         self.create_kitchen_tab()
         self.create_bar_tab()
+        self.create_facturas_tab()
         self.create_reports_tab()
         self.tab_control.pack(expand=1, fill='both')
 
@@ -484,6 +485,74 @@ class RestaurantManagementApp(tk.Tk):
         self.treeview_R6.heading('amabilidad_promedio', text='Amabilidad Promedio')
         self.treeview_R6.heading('exactitud_promedio', text='Exactitud Promedio')
         self.treeview_R6.pack(fill='x', expand=True)
+    def create_facturas_tab(self):
+        tab = ttk.Frame(self.tab_control)
+        self.tab_control.add(tab, text='Facturas')
+        ttk.Label(tab, text='Buscar Facturas', font=('Helvetica', 18, 'bold')).pack(pady=20)
+
+        form_frame = ttk.Frame(tab, padding=(20, 10))
+        form_frame.pack(pady=10, fill='x')
+
+        # Inputs para nombre, nit y método de pago
+        ttk.Label(form_frame, text="Nombre:").grid(row=0, column=0, padx=10, pady=10, sticky='e')
+        nombre_entry = ttk.Entry(form_frame)
+        nombre_entry.grid(row=0, column=1, padx=10, pady=10, sticky='w')
+
+        ttk.Label(form_frame, text="NIT:").grid(row=1, column=0, padx=10, pady=10, sticky='e')
+        nit_entry = ttk.Entry(form_frame)
+        nit_entry.grid(row=1, column=1, padx=10, pady=10, sticky='w')
+
+        ttk.Label(form_frame, text="Método de Pago:").grid(row=2, column=0, padx=10, pady=10, sticky='e')
+        metodo_pago_combobox = ttk.Combobox(form_frame, values=['Efectivo', 'Tarjeta', 'Ambas'])
+        metodo_pago_combobox.grid(row=2, column=1, padx=10, pady=10, sticky='w')
+        metodo_pago_combobox.set('Efectivo') # Default value
+
+        # Botón de búsqueda
+        buscar_button = ttk.Button(form_frame, text="Buscar Factura", command=lambda: self.buscar_factura(nombre_entry, nit_entry, metodo_pago_combobox))
+        buscar_button.grid(row=3, column=1, padx=10, pady=20, sticky='e')
+
+        # Treeview para mostrar las facturas encontradas
+        self.treeview_facturas = ttk.Treeview(tab, columns=('id_factura', 'nit', 'nombre', 'direccion', 'monto_efectivo', 'monto_tarjeta', 'monto_total', 'fecha', 'cuenta'), show='headings')
+        self.treeview_facturas.heading('id_factura', text='ID Factura')
+        self.treeview_facturas.heading('nit', text='NIT')
+        self.treeview_facturas.heading('nombre', text='Nombre')
+        self.treeview_facturas.heading('direccion', text='Dirección')
+        self.treeview_facturas.heading('monto_efectivo', text='Monto Efectivo')
+        self.treeview_facturas.heading('monto_tarjeta', text='Monto Tarjeta')
+        self.treeview_facturas.heading('monto_total', text='Monto Total')
+        self.treeview_facturas.heading('fecha', text='Fecha')
+        self.treeview_facturas.heading('cuenta', text='Cuenta')
+
+        # Configuración de las columnas para ajustar el ancho
+        self.treeview_facturas.column('id_factura', width=70)
+        self.treeview_facturas.column('nit', width=90)
+        self.treeview_facturas.column('nombre', width=150)
+        self.treeview_facturas.column('direccion', width=150)
+        self.treeview_facturas.column('monto_efectivo', width=100)
+        self.treeview_facturas.column('monto_tarjeta', width=100)
+        self.treeview_facturas.column('monto_total', width=100)
+        self.treeview_facturas.column('fecha', width=100)
+        self.treeview_facturas.column('cuenta', width=80)
+        # ... (configuración de las columnas del treeview)
+        self.treeview_facturas.pack(fill='x', expand=True)
+
+    def buscar_factura(self, nombre_entry, nit_entry, metodo_pago_combobox):
+        nombre = nombre_entry.get()
+        nit = nit_entry.get()
+        metodo_pago = metodo_pago_combobox.get()
+
+        # Limpieza previa de la tabla
+        for i in self.treeview_facturas.get_children():
+            self.treeview_facturas.delete(i)
+        
+        # Buscar las facturas con el endpoint de bd.py
+        facturas = db.buscar_facturas(nombre, nit, metodo_pago)
+        if facturas:
+            for factura in facturas:
+                factura_formateada = factura[:4] + tuple(f'Q.{m:.2f}' if isinstance(m, float) else m for m in factura[4:7]) + factura[7:]
+                self.treeview_facturas.insert('', 'end', values=factura_formateada)
+        else:
+            messagebox.showinfo("Buscar Facturas", "No se encontraron facturas de cuentas cerradas con esos datos.")
 if __name__ == "__main__":
     app = RestaurantManagementApp()
     app.mainloop()

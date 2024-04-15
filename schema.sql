@@ -172,5 +172,40 @@ BEGIN
 END;
 $$
 LANGUAGE plpgsql;
----
 
+--Función para devolver las facturas
+
+CREATE OR REPLACE FUNCTION reporte_facturas_por_parametros(
+    _nombre VARCHAR(50), 
+    _nit VARCHAR(9), 
+    _metodo_pago VARCHAR(50))
+RETURNS TABLE (
+    id_factura VARCHAR(10), 
+    nit VARCHAR(9), 
+    nombre VARCHAR(50), 
+    direccion VARCHAR(50), 
+    monto_efectivo DOUBLE PRECISION, 
+    monto_tarjeta DOUBLE PRECISION, 
+    monto_total DOUBLE PRECISION, 
+    fecha DATE, 
+    cuenta VARCHAR(10))
+AS $$
+BEGIN
+    RETURN QUERY 
+    SELECT f.id_factura, f.nit, f.nombre, f.direccion, 
+           f.monto_efectivo, f.monto_tarjeta, f.monto_total, 
+           f.fecha, f.cuenta
+    FROM facturas f
+    JOIN cuentas c ON f.cuenta = c.id_cuenta
+    WHERE f.nombre ILIKE _nombre AND f.nit = _nit
+    AND (
+        (_metodo_pago = 'Efectivo' AND f.monto_efectivo > 0 AND f.monto_tarjeta = 0) OR
+        (_metodo_pago = 'Tarjeta' AND f.monto_tarjeta > 0 AND f.monto_efectivo = 0) OR
+        (_metodo_pago = 'Ambas' AND f.monto_efectivo > 0 AND f.monto_tarjeta > 0)
+    )
+    AND c.estado = FALSE
+    ORDER BY f.fecha DESC;
+END;
+$$ LANGUAGE plpgsql;
+
+COMMIT;
