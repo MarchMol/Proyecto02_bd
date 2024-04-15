@@ -158,7 +158,7 @@ class RestaurantManagementApp(tk.Tk):
         btn_add_item = tk.Button(form_frame, text="Agregar Alimento", command=lambda: foodSelection(db.fetch_bills(table_number_combox.get())))
         
         # Boton para cerrar cuenta
-        btn_close_bill = tk.Button(form_frame, text="Cerrar Cuenta", command=lambda: print("TODO Aabrir cuenta"))
+        btn_close_bill = tk.Button(form_frame, text="Cerrar Cuenta", command=lambda: self.tab_control.select(4))
         
         # Treeview para visualizar elementos agregados a la cuenta
         treeview_orders= ttk.Treeview(tab, columns=('Nombre', 'Precio', 'Hora'), show='headings')

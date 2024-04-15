@@ -58,7 +58,7 @@ def event_signin(entry_username, entry_password, entry_name, entry_role, root_si
     if(len(password)!= 0 and len(name)!=0):
         try:
             if(db.SignIn(username, password, name, role)):
-                messagebox.showinfo("Sign In Successful", "Main page goes here")
+                messagebox.showinfo("Sign In Successful", "Nuevo empleado exitosamente registrado")
                 root_sigin.destroy()
                 create_login_screen()
             else:
