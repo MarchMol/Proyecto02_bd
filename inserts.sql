@@ -165,4 +165,28 @@ INSERT INTO facturas (id_factura, nit, nombre, direccion, monto, metodo_pago, fe
 ('F009', '654321987', 'Marco Marquez', 'Carrera 9, Ciudad', 6.50, 'Tarjeta de crédito', '2024-04-14', 'C009'),
 ('F010', '123789456', 'Pedro Piedra', 'Avenida 10, Ciudad', 18.99, 'Efectivo', '2024-04-15', 'C010');
 
+--Añadir columna de tipo a la tabla de menu y agregar los tipos a los items del menú ya existentes
+ALTER TABLE menu ADD COLUMN tipo VARCHAR(50);
+UPDATE menu SET tipo = 'Plato Fuerte' WHERE id_alimento IN ('M001', 'M006', 'M008');
+UPDATE menu SET tipo = 'Postre' WHERE id_alimento = 'M010';
+UPDATE menu SET tipo = 'Entrada' WHERE id_alimento IN ('M003', 'M007');
+UPDATE menu SET tipo = 'Plato Principal' WHERE id_alimento IN ('M002', 'M004', 'M009','M005');
+
+--Agregar las bebidas al menu
+INSERT INTO menu (id_alimento, nombre, descripcion, precio, tipo) VALUES
+('M011', 'Coca Cola', 'Refresco de cola clásico.', 2.50, 'Bebida'),
+('M012', 'Agua Mineral', 'Agua mineral natural.', 1.75, 'Bebida'),
+('M013', 'Cerveza Artesanal', 'Cerveza rubia artesanal.', 3.50, 'Bebida'),
+('M014', 'Jugo de Naranja Natural', 'Jugo recién exprimido de naranjas.', 2.99, 'Bebida'),
+('M015', 'Café Americano', 'Café negro americano.', 1.99, 'Bebida');
+
+--Agregar bebidas a los pedidos
+INSERT INTO pedidos (cuenta, alimento, tiempo) VALUES
+('C001', 'M011', '2024-04-12 18:40:00'),
+('C002', 'M012', '2024-04-13 19:25:00'),
+('C003', 'M013', '2024-04-13 20:10:00'),
+('C004', 'M014', '2024-04-13 20:55:00'),
+('C005', 'M015', '2024-04-15 21:40:00');
+commit
+
 commit;
