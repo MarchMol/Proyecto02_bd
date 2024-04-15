@@ -266,3 +266,17 @@ def buscar_facturas(nombre, nit, metodo_pago):
     except Exception as e:
         print(f'Ocurrió un error al buscar las facturas: {e}')
         return []
+# Calcular Cuenta
+def calcular_cuenta(id_cuenta, porcentaje_propina, cantidad_personas):
+    try: 
+        con = connection()  
+        cursor = con.cursor()
+        query = "SELECT * FROM calcular_cuenta(%s, %s, %s);"
+        cursor.execute(query, (id_cuenta, porcentaje_propina, cantidad_personas))
+        result = cursor.fetchall()
+        cursor.close()
+        con.close()
+        return result
+    except psycopg2.Error as e:
+        print('Ocurrio un error al cerrar la cuenta:', e)
+        return None

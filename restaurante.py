@@ -6,7 +6,7 @@ class RestaurantManagementApp(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title('Sistema de Gestión del Restaurante')
-        self.geometry('1000x400')  
+        self.geometry('1100x800')  
 
         self.style = ttk.Style(self)
         self.style.theme_use('clam')  # Tema visual para los widgets ttk
@@ -16,14 +16,10 @@ class RestaurantManagementApp(tk.Tk):
         self.create_kitchen_tab()
         self.create_bar_tab()
         self.create_facturas_tab()
+        self.create_cerrar_cuenta_tab()
         self.create_reports_tab()
         self.tab_control.pack(expand=1, fill='both')
 
-    
-            
-
-
-    
     def create_order_tab(self):
         
             
@@ -553,6 +549,107 @@ class RestaurantManagementApp(tk.Tk):
                 self.treeview_facturas.insert('', 'end', values=factura_formateada)
         else:
             messagebox.showinfo("Buscar Facturas", "No se encontraron facturas de cuentas cerradas con esos datos.")
+    def create_cerrar_cuenta_tab(self):
+        tab = ttk.Frame(self.tab_control)
+        self.tab_control.add(tab, text='Cerrar Cuenta')
+        ttk.Label(tab, text='Cerrar Cuenta y Generar Factura', font=('Helvetica', 18, 'bold')).pack(pady=20)
+
+        form_frame = ttk.Frame(tab, padding=(20, 10))
+        form_frame.pack(pady=10, fill='x')
+
+        # Input para ID de la cuenta
+        ttk.Label(form_frame, text="ID Cuenta:").grid(row=0, column=0, padx=10, pady=10, sticky='e')
+        id_cuenta_entry = ttk.Entry(form_frame)
+        id_cuenta_entry.grid(row=0, column=1, padx=10, pady=10, sticky='w')
+
+        # Input para porcentaje de la propina
+        ttk.Label(form_frame, text="Porcentaje Propina (%):").grid(row=1, column=0, padx=10, pady=10, sticky='e')
+        propina_entry = ttk.Entry(form_frame)
+        propina_entry.grid(row=1, column=1, padx=10, pady=10, sticky='w')
+
+        # Input para cantidad de personas
+        ttk.Label(form_frame, text="Dividir Entre (Personas):").grid(row=2, column=0, padx=10, pady=10, sticky='e')
+        personas_entry = ttk.Entry(form_frame)
+        personas_entry.grid(row=2, column=1, padx=10, pady=10, sticky='w')
+
+        # Botón para cerrar cuenta y generar factura
+        cerrar_button = ttk.Button(form_frame, text="Cerrar Cuenta", command=lambda: self.cerrar_cuenta(id_cuenta_entry, propina_entry, personas_entry))
+        cerrar_button.grid(row=3, column=1, padx=10, pady=20, sticky='e')
+
+        self.treeview_factura = ttk.Treeview(tab, columns=('alimento', 'precio'), show='headings')
+        # ... (Configuración de las columnas del treeview)
+        self.treeview_factura.pack(fill='x', expand=True)
+
+        # Área para los inputs de las personas que dividen la cuenta
+        self.personas_frame = ttk.Frame(tab, padding=(20, 10))
+        self.personas_frame.pack(pady=10, fill='x', expand=True)
+
+        # Esta lista contendrá todas las referencias a los campos de entrada para cada persona
+        self.entradas_persona = []
+
+    def cerrar_cuenta(self, id_cuenta_entry, propina_entry, personas_entry):
+        id_cuenta = id_cuenta_entry.get()
+        propina = float(propina_entry.get())
+        personas = int(personas_entry.get())
+        # Llamar al endpoint para cerrar la cuenta y obtener la factura
+        resultado = db.calcular_cuenta(id_cuenta, propina, personas)
+        # Verificar si se obtuvieron resultados
+        if resultado and len(resultado) > 0:
+            subtotal, total_con_propina, pago_por_persona = resultado[0][-3:]
+            # Limpiar el treeview
+            for i in self.treeview_factura.get_children():
+                self.treeview_factura.delete(i)
+
+            # Actualizar el treeview con los nuevos alimentos y sus precios
+            for item in resultado:
+                formatted_price = f"Q{item[1]:.2f}"
+                self.treeview_factura.insert('', 'end', values=(item[0], formatted_price))  # Agrega el precio formateado
+
+            # Configurar las columnas del treeview
+            self.treeview_factura.column('alimento', anchor='w', stretch=True)
+            self.treeview_factura.column('precio', anchor='e', stretch=True)  # Alinear a la derecha
+
+            self.treeview_factura.heading('alimento', text='Alimento')
+            self.treeview_factura.heading('precio', text='Precio')
+
+            # Limpiar el frame de personas y crear los campos de entrada
+            for widget in self.personas_frame.winfo_children():
+                widget.destroy()
+
+            # Crear campos de entrada para cada persona
+            for i in range(personas):
+                self.crear_entradas_persona(i, pago_por_persona)  
+            ultimo_indice = self.entradas_persona[-1][0].grid_info()['row'] + 1  # Último índice de las entradas de las personas       
+            ttk.Label(self.personas_frame, text=f"Subtotal: Q{subtotal:.2f}").grid(row=ultimo_indice, column=0, columnspan=2, padx=10, pady=10, sticky='e')
+            ttk.Label(self.personas_frame, text=f"Total con Propina: Q{total_con_propina:.2f}").grid(row=ultimo_indice, column=2, columnspan=2, padx=10, pady=10, sticky='e')
+            ttk.Label(self.personas_frame, text=f"Pago por Persona: Q{pago_por_persona:.2f}").grid(row=ultimo_indice, column=4, columnspan=2, padx=10, pady=10, sticky='e')
+        else:
+            messagebox.showinfo("Cerrar Cuenta", "No se encontraron datos para la cuenta proporcionada o hubo un error en el cálculo.")
+
+    def crear_entradas_persona(self, indice, cantidad_a_pagar):
+        
+        ttk.Label(self.personas_frame, text=f"Persona {indice+1} Nombre:").grid(row=indice, column=0, padx=10, pady=10, sticky='e')
+        nombre_entry = ttk.Entry(self.personas_frame)
+        nombre_entry.grid(row=indice, column=1, padx=10, pady=10, sticky='w')
+
+        ttk.Label(self.personas_frame, text="NIT:").grid(row=indice, column=2, padx=10, pady=10, sticky='w')
+        nit_entry = ttk.Entry(self.personas_frame, width=15)
+        nit_entry.grid(row=indice, column=3, padx=10, pady=10, sticky='w')
+
+        ttk.Label(self.personas_frame, text="Dirección:").grid(row=indice, column=4, padx=10, pady=10, sticky='e')
+        direccion_entry = ttk.Entry(self.personas_frame)
+        direccion_entry.grid(row=indice, column=5, padx=10, pady=10, sticky='w')
+
+        ttk.Label(self.personas_frame, text="Efectivo:").grid(row=indice, column=6, padx=10, pady=10, sticky='w')
+        efectivo_entry = ttk.Entry(self.personas_frame, width=10)
+        efectivo_entry.grid(row=indice, column=7, padx=10, pady=10, sticky='w')
+
+        ttk.Label(self.personas_frame, text="Tarjeta:").grid(row=indice, column=8, padx=10, pady=10, sticky='w')
+        tarjeta_entry = ttk.Entry(self.personas_frame, width=10)
+        tarjeta_entry.grid(row=indice, column=9, padx=10, pady=10, sticky='w')
+        ttk.Label(self.personas_frame, text=f"A Pagar: Q{cantidad_a_pagar:.2f}").grid(row=indice, column=10, padx=10, pady=10, sticky='w')
+        # Guardar las referencias a los campos de entrada
+        self.entradas_persona.append((nombre_entry, nit_entry, direccion_entry, efectivo_entry, tarjeta_entry))
 if __name__ == "__main__":
     app = RestaurantManagementApp()
     app.mainloop()
