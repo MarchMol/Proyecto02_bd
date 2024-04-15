@@ -34,8 +34,8 @@ class RestaurantManagementApp(tk.Tk):
                     if(food_combox.get()!= '' and int(entry_quantity.get())>0):
                         print("SE AGREGA EL ELEMENTO")
                         print(item_dic[food_combox.get()])
-                        if(bill_info[0][2]):
-                            print(bill_info[0][0])
+                        print(bill_info[0][0])
+                        for i in range(int(entry_quantity.get())):
                             db.insertOrder(bill_info[0][0],item_dic[food_combox.get()])
                         foodSelectionWindow.destroy()
                         table_selection(bill_info[0][1])
@@ -75,26 +75,24 @@ class RestaurantManagementApp(tk.Tk):
             
         def table_selection(selected_option):
             print(selected_option)
-            if(selected_option!=''):
+            if(selected_option!='' and len(db.fetch_bills(selected_option))>0):
                 a = db.fetch_bills(selected_option)
                 print(a)
-                if(a[0][2]):
-                    state.config(text="Mesa Ocupada")
-                    details.config(text="Cuenta Abierta: "+str((a[0][0])))
-                    details.grid(row=1, column=1, padx=10, pady=10, sticky="w")
-                    btn_open_bill.grid_forget()
-                    btn_add_item.grid(row=2, column=0, padx=10, pady=5, sticky="e")
-                    btn_close_bill.grid(row=2, column=1, padx=10, pady=5, sticky="e")
+                state.config(text="Mesa Ocupada")
+                details.config(text="Cuenta Abierta: "+str((a[0][0])))
+                details.grid(row=1, column=1, padx=10, pady=10, sticky="w")
+                btn_open_bill.grid_forget()
+                btn_add_item.grid(row=2, column=0, padx=10, pady=5, sticky="e")
+                btn_close_bill.grid(row=2, column=1, padx=10, pady=5, sticky="e")
+                orderIterator(db.fetchOrders(a[0][0]))
                     
-                    orderIterator(db.fetchOrders(a[0][0]))
-                    
-                else:
-                    treeviewDeleter()      
-                    state.config(text="Mesa Libre")
-                    btn_open_bill.grid(row=1, column=1, padx=10, pady=10,sticky="w")
-                    details.grid_forget()
-                    btn_add_item.grid_forget()
-                    btn_close_bill.grid_forget()
+            else:
+                treeviewDeleter()      
+                state.config(text="Mesa Libre")
+                btn_open_bill.grid(row=1, column=1, padx=10, pady=10,sticky="w")
+                details.grid_forget()
+                btn_add_item.grid_forget()
+                btn_close_bill.grid_forget()
         def treeviewDeleter():
             for i in treeview_orders.get_children():
                 treeview_orders.delete(i)
@@ -115,9 +113,14 @@ class RestaurantManagementApp(tk.Tk):
             return rslt
         
         def open_bill(selected_table):
-            result = messagebox.askquestion("Confirmación", "¿Desea crear una cuenta nueva? \n\nLa cuenta "+formatId(db.nextBill()[0]) +" se asociara con\nla mesa "+selected_table)
+            bill = formatId(db.nextBill()[0])
+            
+            result = messagebox.askquestion("Confirmación", "¿Desea abrir una cuenta nueva? \n\nLa cuenta "+bill +" se asociara con\nla mesa "+selected_table)
             if result == "yes":
                 print("User clicked Yes")
+                db.create_new_bill(bill, selected_table)
+                table_selection(selected_table)
+                
             else:
                 print("User clicked No")
                 
