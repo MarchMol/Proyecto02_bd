@@ -302,3 +302,16 @@ def calcular_cuenta(id_cuenta, porcentaje_propina, cantidad_personas):
     except psycopg2.Error as e:
         print('Ocurrio un error al cerrar la cuenta:', e)
         return None
+# Generar factura 
+def generar_factura(num_cuenta, nit, nombre, direccion, monto_efectivo, monto_tarjeta, subtotal, propina):
+    try: 
+        con = connection()  
+        cursor = con.cursor()
+        query="SELECT generar_factura(%s, %s, %s,%s, %s, %s,%s, %s);"
+        cursor.execute(query,(num_cuenta, nit, nombre, direccion, monto_efectivo, monto_tarjeta, subtotal, propina))
+        con.commit() 
+        con.close()
+        return True
+    except psycopg2.Error as e:
+        print('Ocurrio un error al generar la factura:', e)
+        return None

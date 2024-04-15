@@ -549,6 +549,18 @@ class RestaurantManagementApp(tk.Tk):
                 self.treeview_facturas.insert('', 'end', values=factura_formateada)
         else:
             messagebox.showinfo("Buscar Facturas", "No se encontraron facturas de cuentas cerradas con esos datos.")
+    def crear_factura(self, persona_info, num_cuenta, subtotal, porcentaje):
+        nombre = persona_info[0].get()
+        nit = persona_info[1].get()
+        direccion = persona_info[2].get()
+        efectivo = persona_info[3].get()
+        tarjeta = persona_info[4].get()
+        # Llamar al endpoint para generar la factura
+        resultado = db.generar_factura(num_cuenta, nit, nombre, direccion, efectivo, tarjeta, subtotal, porcentaje)
+        if resultado:
+            messagebox.showinfo("Factura Creada", f"Factura generada con éxito para {nombre}.")
+        else:
+            messagebox.showerror("Error", "No se pudo generar la factura.")
     def create_cerrar_cuenta_tab(self):
         tab = ttk.Frame(self.tab_control)
         self.tab_control.add(tab, text='Cerrar Cuenta')
@@ -593,9 +605,13 @@ class RestaurantManagementApp(tk.Tk):
         personas = int(personas_entry.get())
         # Llamar al endpoint para cerrar la cuenta y obtener la factura
         resultado = db.calcular_cuenta(id_cuenta, propina, personas)
+        self.propina=propina
+        self.id_cuenta=id_cuenta
+        self.personas=personas
         # Verificar si se obtuvieron resultados
         if resultado and len(resultado) > 0:
             subtotal, total_con_propina, pago_por_persona = resultado[0][-3:]
+            self.subtotal=subtotal
             # Limpiar el treeview
             for i in self.treeview_factura.get_children():
                 self.treeview_factura.delete(i)
@@ -623,8 +639,23 @@ class RestaurantManagementApp(tk.Tk):
             ttk.Label(self.personas_frame, text=f"Subtotal: Q{subtotal:.2f}").grid(row=ultimo_indice, column=0, columnspan=2, padx=10, pady=10, sticky='e')
             ttk.Label(self.personas_frame, text=f"Total con Propina: Q{total_con_propina:.2f}").grid(row=ultimo_indice, column=2, columnspan=2, padx=10, pady=10, sticky='e')
             ttk.Label(self.personas_frame, text=f"Pago por Persona: Q{pago_por_persona:.2f}").grid(row=ultimo_indice, column=4, columnspan=2, padx=10, pady=10, sticky='e')
+            # Botón para generar todas las facturas una vez que las personas han ingresado su información
+            btn_generar_facturas = ttk.Button(
+                self.personas_frame,
+                text="Generar todas las facturas",
+                command=lambda: self.generar_todas_facturas()
+            )
+            btn_generar_facturas.grid(row=ultimo_indice+1, column=0, columnspan=11, padx=10, pady=10)
         else:
             messagebox.showinfo("Cerrar Cuenta", "No se encontraron datos para la cuenta proporcionada o hubo un error en el cálculo.")
+
+    def generar_todas_facturas(self):
+        for persona_info in self.entradas_persona:
+            if any(not entry.get().strip() for entry in persona_info[:5]):
+                messagebox.showerror("Error", "Todos los campos son obligatorios para generar la factura.")
+                return
+            self.crear_factura(persona_info, self.id_cuenta, self.subtotal/self.personas,self.propina)
+
 
     def crear_entradas_persona(self, indice, cantidad_a_pagar):
         

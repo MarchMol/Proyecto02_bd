@@ -210,3 +210,4 @@ UPDATE facturas SET monto_efectivo = 6.49, monto_tarjeta = 0.01, monto_total = 6
 UPDATE facturas SET monto_efectivo = 7.76, monto_tarjeta = 11.23, monto_total = 18.99 WHERE id_factura = 'F010';
 
 commit;
+

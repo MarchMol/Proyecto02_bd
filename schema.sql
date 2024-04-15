@@ -173,7 +173,7 @@ END;
 $$
 LANGUAGE plpgsql;
 
---Función para devolver las facturas
+--Función para obtener los detalles del pedido
 
 CREATE OR REPLACE FUNCTION reporte_facturas_por_parametros(
     _nombre VARCHAR(50), 
@@ -205,6 +205,50 @@ BEGIN
     )
     AND c.estado = FALSE
     ORDER BY f.fecha DESC;
+END;
+$$ LANGUAGE plpgsql;
+
+COMMIT;
+
+--Procedimiento para update de la tabla de cuenta y generar factura
+CREATE OR REPLACE FUNCTION generar_factura(
+    _num_cuenta VARCHAR, 
+    _nit VARCHAR, 
+    _nombre VARCHAR, 
+    _direccion VARCHAR, 
+    _monto_efectivo NUMERIC, 
+    _monto_tarjeta NUMERIC, 
+    _subtotal NUMERIC,
+    _porcentaje_propina NUMERIC
+)
+RETURNS VOID AS $$
+DECLARE
+    nuevo_correlativo VARCHAR;
+    ultimo_correlativo INT;
+    monto_total_con_propina NUMERIC;
+    monto_efectivo_sin_propina NUMERIC;
+    monto_tarjeta_sin_propina NUMERIC;
+BEGIN
+    -- Calcula el total con propina
+    monto_total_con_propina := _subtotal * (1 + _porcentaje_propina / 100);
+
+    -- Calcula los montos sin propina en base a la proporción del subtotal en el total con propina
+    monto_efectivo_sin_propina := (_monto_efectivo / monto_total_con_propina) * _subtotal;
+    monto_tarjeta_sin_propina := (_monto_tarjeta / monto_total_con_propina) * _subtotal;
+
+    -- Encuentra el correlativo más alto de las facturas y le suma uno
+    SELECT COALESCE(MAX(CAST(SUBSTR(id_factura, 2) AS INT)), 0) + 1 INTO ultimo_correlativo
+    FROM facturas;
+    
+    -- Genera el nuevo correlativo como string
+	nuevo_correlativo := 'F' || LPAD(ultimo_correlativo::TEXT, 3, '0');
+    
+    -- Inserta la nueva factura en la base de datos con montos sin propina
+    INSERT INTO facturas(id_factura, nit, nombre, direccion, monto_efectivo, monto_tarjeta, monto_total, fecha, cuenta)
+    VALUES (nuevo_correlativo, _nit, _nombre, _direccion, monto_efectivo_sin_propina, monto_tarjeta_sin_propina, _subtotal, CURRENT_DATE, _num_cuenta);
+    
+    -- Actualiza el estado de la cuenta
+    UPDATE cuentas SET estado = FALSE WHERE id_cuenta = _num_cuenta;
 END;
 $$ LANGUAGE plpgsql;
 
