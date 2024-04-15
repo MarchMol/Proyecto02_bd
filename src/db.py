@@ -52,7 +52,6 @@ def SignIn(id, contrasena, nombre, rol):
         return False
 
 # Funcion para obtener las mesas y las cuentas a las que estan asociadas:
-
 def fetch_tables():
     try:
         with connection() as con:
@@ -63,7 +62,8 @@ def fetch_tables():
     except Exception as e:
         print('Error fetching tables:', e)
         return []
-    
+
+# Función obtiene todas las cuentas asociadas a una mesa
 def fetch_bills(id_mesa):
     try:
         con = connection()  
@@ -77,7 +77,8 @@ def fetch_bills(id_mesa):
     except Exception as e:
         print('Error fetching tables:', e)
         return []
-        
+
+# Función obtiene todas las ordenes de una cuenta
 def fetchOrders(id_cuenta):
     try:
         con = connection()  
@@ -92,6 +93,7 @@ def fetchOrders(id_cuenta):
         print('Error fetching tables:', e)
         return []
 
+# Función obtiene todos los elementos del menú
 def fetchMenu():
     try:
         con = connection()  
@@ -105,7 +107,8 @@ def fetchMenu():
     except Exception as e:
         print('Error fetching nect bill:', e)
         return []
-    
+
+# Función cuenta todas las cuentas actuales
 def nextBill():
     try:
         con = connection()  
@@ -119,7 +122,8 @@ def nextBill():
     except Exception as e:
         print('Error fetching nect bill:', e)
         return []
-    
+
+# Función para insertar un alimento en la tabla Pedidos
 def insertOrder(cuenta, alimento):
     try:
         con = connection()  
