@@ -50,13 +50,101 @@ def SignIn(id, contrasena, nombre, rol):
     except psycopg2.Error as e:
         print('Ocurrio un error agregando el usuario:',e)
         return False
+
+# Funcion para obtener las mesas y las cuentas a las que estan asociadas:
+
+def fetch_tables():
+    try:
+        with connection() as con:
+            with con.cursor() as cursor:
+                query = "SELECT id_mesa FROM mesas"
+                cursor.execute(query)
+                return cursor.fetchall()
+    except Exception as e:
+        print('Error fetching tables:', e)
+        return []
     
+def fetch_bills(id_mesa):
+    try:
+        con = connection()  
+        cursor = con.cursor()
+        query = "SELECT id_cuenta, mesa, estado FROM cuentas WHERE mesa = %s;"
+        cursor.execute(query,(id_mesa,))
+        result = cursor.fetchall()
+        cursor.close()
+        con.close()
+        return result
+    except Exception as e:
+        print('Error fetching tables:', e)
+        return []
+        
+def fetchOrders(id_cuenta):
+    try:
+        con = connection()  
+        cursor = con.cursor()
+        query = "SELECT nombre, precio, tiempo FROM pedidos INNER JOIN menu on pedidos.alimento = menu.id_alimento where cuenta=%s;"
+        cursor.execute(query,(id_cuenta,))
+        result = cursor.fetchall()
+        cursor.close()
+        con.close()
+        return result
+    except Exception as e:
+        print('Error fetching tables:', e)
+        return []
+
+def fetchMenu():
+    try:
+        con = connection()  
+        cursor = con.cursor()
+        query = "SELECT nombre, id_alimento FROM menu"
+        cursor.execute(query,)
+        result = cursor.fetchall()
+        cursor.close()
+        con.close()
+        return result
+    except Exception as e:
+        print('Error fetching nect bill:', e)
+        return []
+    
+def nextBill():
+    try:
+        con = connection()  
+        cursor = con.cursor()
+        query = "SELECT count(id_cuenta) FROM cuentas"
+        cursor.execute(query)
+        result = cursor.fetchone()
+        cursor.close()
+        con.close()
+        return result
+    except Exception as e:
+        print('Error fetching nect bill:', e)
+        return []
+    
+def insertOrder(cuenta, alimento):
+    try:
+        con = connection()  
+        cursor = con.cursor()
+        query = "INSERT INTO pedidos(cuenta, alimento, tiempo) VALUES (%s,%s,CURRENT_TIMESTAMP);"
+        cursor.execute(query,(cuenta, alimento))
+        con.commit() 
+        count = cursor.rowcount
+        cursor.close()
+        con.close()
+        if count > 0:
+            print("Insert successful. The amount of users inserted is:", count)
+            return True
+        else:
+            print("No rows weres affected. Insert probably failed.")
+            return False
+    except Exception as e:
+        print('Error Inserting order:', e)
+        return False
 # Función para recuperar los pedidos de la cocina
 def fetch_kitchen_orders():
     try:
         with connection() as con:
             with con.cursor() as cursor:
-                query = "SELECT m.nombre, p.tiempo FROM pedidos p JOIN menu m ON p.alimento = m.id_alimento JOIN cuentas c ON p.cuenta = c.id_cuenta JOIN mesas me ON c.mesa = me.id_mesa WHERE m.tipo NOT LIKE '%Bebida%' ORDER BY p.tiempo;"
+                query = "SELECT m.nombre, p.tiempo FROM pedidos p JOIN menu m ON p.alimento = m.id_alimento JOIN cuentas c ON p.cuenta = c.id_cuenta JOIN mesas me ON c.mesa = me.id_mesa WHERE m.nombre NOT LIKE '%Bebida%' ORDER BY p.tiempo;"
                 cursor.execute(query)
                 return cursor.fetchall()
     except Exception as e:
