@@ -187,6 +187,26 @@ INSERT INTO pedidos (cuenta, alimento, tiempo) VALUES
 ('C003', 'M013', '2024-04-13 20:10:00'),
 ('C004', 'M014', '2024-04-13 20:55:00'),
 ('C005', 'M015', '2024-04-15 21:40:00');
-commit
+
+--Editar la tabla de facturas para que acepte montos de tarjeta y efectivo
+ALTER TABLE facturas
+DROP COLUMN monto,
+DROP COLUMN metodo_pago;
+
+ALTER TABLE facturas
+ADD COLUMN monto_efectivo DOUBLE PRECISION,
+ADD COLUMN monto_tarjeta DOUBLE PRECISION,
+ADD COLUMN monto_total DOUBLE PRECISION;
+
+--Llenar los datos de las 3 nuevas columnas de facturas
+UPDATE facturas SET monto_efectivo = 5.05, monto_tarjeta = 2.70, monto_total = 7.75 WHERE id_factura = 'F002';
+UPDATE facturas SET monto_efectivo = 4.40, monto_tarjeta = 13.85, monto_total = 18.25 WHERE id_factura = 'F003';
+UPDATE facturas SET monto_efectivo = 3.30, monto_tarjeta = 5.95, monto_total = 9.25 WHERE id_factura = 'F004';
+UPDATE facturas SET monto_efectivo = 2.62, monto_tarjeta = 3.37, monto_total = 5.99 WHERE id_factura = 'F005';
+UPDATE facturas SET monto_efectivo = 5.74, monto_tarjeta = 4.76, monto_total = 10.50 WHERE id_factura = 'F006';
+UPDATE facturas SET monto_efectivo = 4.08, monto_tarjeta = 8.17, monto_total = 12.25 WHERE id_factura = 'F007';
+UPDATE facturas SET monto_efectivo = 15.98, monto_tarjeta = 0.01, monto_total = 15.99 WHERE id_factura = 'F008';
+UPDATE facturas SET monto_efectivo = 6.49, monto_tarjeta = 0.01, monto_total = 6.50 WHERE id_factura = 'F009';
+UPDATE facturas SET monto_efectivo = 7.76, monto_tarjeta = 11.23, monto_total = 18.99 WHERE id_factura = 'F010';
 
 commit;

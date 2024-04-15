@@ -56,7 +56,7 @@ def fetch_kitchen_orders():
     try:
         with connection() as con:
             with con.cursor() as cursor:
-                query = "SELECT m.nombre, p.tiempo FROM pedidos p JOIN menu m ON p.alimento = m.id_alimento JOIN cuentas c ON p.cuenta = c.id_cuenta JOIN mesas me ON c.mesa = me.id_mesa WHERE m.tipo NOT LIKE '%Bebida%' ORDER BY p.tiempo;"
+                query = "SELECT m.nombre, p.tiempo FROM pedidos p JOIN menu m ON p.alimento = m.id_alimento JOIN cuentas c ON p.cuenta = c.id_cuenta JOIN mesas me ON c.mesa = me.id_mesa WHERE m.tipo NOT LIKE '%Bebida%' AND c.estado=true ORDER BY p.tiempo;"
                 cursor.execute(query)
                 return cursor.fetchall()
     except Exception as e:
@@ -68,7 +68,7 @@ def fetch_bar_orders():
     try:
         with connection() as con:
             with con.cursor() as cursor:
-                query = "SELECT m.nombre, p.tiempo FROM pedidos p JOIN menu m ON p.alimento = m.id_alimento JOIN cuentas c ON p.cuenta = c.id_cuenta JOIN mesas me ON c.mesa = me.id_mesa WHERE m.tipo LIKE '%Bebida%' ORDER BY p.tiempo;"
+                query = "SELECT m.nombre, p.tiempo FROM pedidos p JOIN menu m ON p.alimento = m.id_alimento JOIN cuentas c ON p.cuenta = c.id_cuenta JOIN mesas me ON c.mesa = me.id_mesa WHERE m.tipo LIKE '%Bebida%' AND c.estado=true ORDER BY p.tiempo;"
                 cursor.execute(query)
                 return cursor.fetchall()
     except Exception as e:
@@ -159,3 +159,18 @@ def Eficiencia():
     except:
         print('Ocurrio un error')
         return False
+# Busqueda de facturas
+def buscar_facturas(nombre, nit, metodo_pago):
+    try: 
+        con = connection()  
+        cursor = con.cursor()
+        query = "SELECT * FROM reporte_facturas_por_parametros(%s, %s, %s);"
+        cursor.execute(query, (nombre, nit, metodo_pago))
+        print(cursor.execute(query, (nombre, nit, metodo_pago)))
+        result = cursor.fetchall()
+        cursor.close()
+        con.close()
+        return result
+    except Exception as e:
+        print(f'Ocurrió un error al buscar las facturas: {e}')
+        return []
