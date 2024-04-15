@@ -293,7 +293,7 @@ def calcular_cuenta(id_cuenta, porcentaje_propina, cantidad_personas):
     try: 
         con = connection()  
         cursor = con.cursor()
-        query = "SELECT * FROM calcular_cuenta(%s, %s, %s);"
+        query = "SELECT * FROM cerrar_cuenta_generar_factura(%s, %s, %s);"
         cursor.execute(query, (id_cuenta, porcentaje_propina, cantidad_personas))
         result = cursor.fetchall()
         cursor.close()

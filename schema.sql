@@ -253,3 +253,47 @@ END;
 $$ LANGUAGE plpgsql;
 
 COMMIT;
+
+CREATE OR REPLACE FUNCTION cerrar_cuenta_generar_factura(
+    _id_cuenta VARCHAR(10),
+    _porcentaje_propina NUMERIC,
+    _cantidad_personas INT)
+RETURNS TABLE (
+    nombre_alimento VARCHAR(50),
+    precio_alimento DOUBLE PRECISION, -- Tipo corregido a DOUBLE PRECISION
+    subtotal DOUBLE PRECISION, -- Tipo corregido a DOUBLE PRECISION
+    total_con_propina DOUBLE PRECISION, -- Tipo corregido a DOUBLE PRECISION
+    pago_por_persona DOUBLE PRECISION) -- Tipo corregido a DOUBLE PRECISION
+AS $$
+DECLARE
+    _subtotal DOUBLE PRECISION := 0;
+    _total DOUBLE PRECISION;
+    _pago_individual DOUBLE PRECISION;
+BEGIN
+    -- Calcular el subtotal de los alimentos de la cuenta
+    SELECT SUM(m.precio) INTO _subtotal
+    FROM pedidos AS p
+    JOIN menu AS m ON p.alimento = m.id_alimento
+    WHERE p.cuenta = _id_cuenta;
+
+    -- Calcular el total incluyendo propina
+    _total := _subtotal + (_subtotal * (_porcentaje_propina / 100.0));
+
+    -- Calcular el pago por persona
+    _pago_individual := _total / _cantidad_personas;
+
+    -- Marcar la cuenta como cerrada y fijar la hora de cierre
+    UPDATE cuentas SET estado = FALSE, tiempo_carrada = CURRENT_TIMESTAMP
+    WHERE id_cuenta = _id_cuenta AND estado = TRUE;
+
+    -- Retornar los detalles de los alimentos y los totales
+    RETURN QUERY 
+    SELECT m.nombre, m.precio, _subtotal, _total, _pago_individual
+    FROM pedidos AS p
+    JOIN menu AS m ON p.alimento = m.id_alimento
+    WHERE p.cuenta = _id_cuenta;
+
+END;
+$$ LANGUAGE plpgsql;
+
+COMMIT;

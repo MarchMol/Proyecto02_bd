@@ -562,11 +562,31 @@ class RestaurantManagementApp(tk.Tk):
         else:
             messagebox.showerror("Error", "No se pudo generar la factura.")
     def create_cerrar_cuenta_tab(self):
+        def on_frame_configure(event):
+            canvas.configure(scrollregion=canvas.bbox("all"))
+
+        def on_canvas_configure(event):
+            canvas.itemconfigure(inner_frame_id, width=event.width)
+            
+        
         tab = ttk.Frame(self.tab_control)
         self.tab_control.add(tab, text='Cerrar Cuenta')
-        ttk.Label(tab, text='Cerrar Cuenta y Generar Factura', font=('Helvetica', 18, 'bold')).pack(pady=20)
+        ttk.Label(tab, text='Cerrar Cuenta y Generar Factura', font=('Helvetica', 18, 'bold')).pack(pady=20)    
 
-        form_frame = ttk.Frame(tab, padding=(20, 10))
+        canvas = tk.Canvas(tab)
+        canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        # Add a scrollbar to the canvas
+        scrollbar = ttk.Scrollbar(tab, orient=tk.VERTICAL, command=canvas.yview)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        # Configure the canvas to use the scrollbar
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        # Create the form frame inside the canvas
+        main_frame = ttk.Frame(canvas)
+        
+        form_frame = ttk.Frame(main_frame, padding=(20, 10))
         form_frame.pack(pady=10, fill='x')
 
         # Input para ID de la cuenta
@@ -588,16 +608,24 @@ class RestaurantManagementApp(tk.Tk):
         cerrar_button = ttk.Button(form_frame, text="Cerrar Cuenta", command=lambda: self.cerrar_cuenta(id_cuenta_entry, propina_entry, personas_entry))
         cerrar_button.grid(row=3, column=1, padx=10, pady=20, sticky='e')
 
-        self.treeview_factura = ttk.Treeview(tab, columns=('alimento', 'precio'), show='headings')
+        self.treeview_factura = ttk.Treeview(main_frame, columns=('alimento', 'precio'), show='headings')
         # ... (Configuración de las columnas del treeview)
         self.treeview_factura.pack(fill='x', expand=True)
 
         # Área para los inputs de las personas que dividen la cuenta
-        self.personas_frame = ttk.Frame(tab, padding=(20, 10))
-        self.personas_frame.pack(pady=10, fill='x', expand=True)
+        self.personas_frame = ttk.Frame(main_frame, padding=(20, 10))
+        self.personas_frame.pack(pady=10, expand=True)
 
         # Esta lista contendrá todas las referencias a los campos de entrada para cada persona
         self.entradas_persona = []
+        
+        inner_frame_id = canvas.create_window((0, 0), window=main_frame, anchor="nw")
+
+        # Update the scroll region when the size of the form frame changes
+        form_frame.bind("<Configure>", on_frame_configure)
+
+        # Update the canvas when the size of the window changes
+        canvas.bind("<Configure>", on_canvas_configure)
 
     def cerrar_cuenta(self, id_cuenta_entry, propina_entry, personas_entry):
         id_cuenta = id_cuenta_entry.get()
@@ -612,6 +640,7 @@ class RestaurantManagementApp(tk.Tk):
         if resultado and len(resultado) > 0:
             subtotal, total_con_propina, pago_por_persona = resultado[0][-3:]
             self.subtotal=subtotal
+        
             # Limpiar el treeview
             for i in self.treeview_factura.get_children():
                 self.treeview_factura.delete(i)
@@ -622,8 +651,8 @@ class RestaurantManagementApp(tk.Tk):
                 self.treeview_factura.insert('', 'end', values=(item[0], formatted_price))  # Agrega el precio formateado
 
             # Configurar las columnas del treeview
-            self.treeview_factura.column('alimento', anchor='w', stretch=True)
-            self.treeview_factura.column('precio', anchor='e', stretch=True)  # Alinear a la derecha
+            self.treeview_factura.column('alimento', anchor='w', width=20)
+            self.treeview_factura.column('precio', anchor='e', width=20)  # Alinear a la derecha
 
             self.treeview_factura.heading('alimento', text='Alimento')
             self.treeview_factura.heading('precio', text='Precio')
