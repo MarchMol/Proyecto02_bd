@@ -68,7 +68,7 @@ def fetch_bills(id_mesa):
     try:
         con = connection()  
         cursor = con.cursor()
-        query = "SELECT id_cuenta, mesa, estado FROM cuentas WHERE mesa = %s;"
+        query = "SELECT id_cuenta, mesa FROM cuentas WHERE mesa = %s AND estado = True;"
         cursor.execute(query,(id_mesa,))
         result = cursor.fetchall()
         cursor.close()
@@ -143,6 +143,28 @@ def insertOrder(cuenta, alimento):
     except Exception as e:
         print('Error Inserting order:', e)
         return False
+
+# Funcion crea nueva cuenta
+def create_new_bill(cuenta, mesa):
+    try:
+        con = connection()  
+        cursor = con.cursor()
+        query = "INSERT INTO cuentas(id_cuenta, estado, tiempo_abierta, tiempo_carrada, mesa) VALUES (%s, True, CURRENT_TIMESTAMP, NULL, %s);"
+        cursor.execute(query,(cuenta, mesa))
+        con.commit() 
+        count = cursor.rowcount
+        cursor.close()
+        con.close()
+        if count > 0:
+            print("Insert successful. The amount of users inserted is:", count)
+            return True
+        else:
+            print("No rows weres affected. Insert probably failed.")
+            return False
+    except Exception as e:
+        print('Error Creating Bill:', e)
+        return False
+
 # Función para recuperar los pedidos de la cocina
 def fetch_kitchen_orders():
     try:

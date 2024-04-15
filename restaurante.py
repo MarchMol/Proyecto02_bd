@@ -20,18 +20,18 @@ class RestaurantManagementApp(tk.Tk):
         self.create_reports_tab()
         self.tab_control.pack(expand=1, fill='both')
 
-    def create_order_tab(self):
-        
-            
-        def foodSelection(bill_info):
-            
+
+    def create_order_tab(self):   
+        # Fución muestra la ventana adicional para agregar nuevo elemento de comida
+        def foodSelection(bill_info):  
+            # Funció valida si los valores ingresados son correctos para e ingresa los elementos de comida    
             def validateFoodSelection():
                 try:
                     if(food_combox.get()!= '' and int(entry_quantity.get())>0):
                         print("SE AGREGA EL ELEMENTO")
                         print(item_dic[food_combox.get()])
-                        if(bill_info[0][2]):
-                            print(bill_info[0][0])
+                        print(bill_info[0][0])
+                        for i in range(int(entry_quantity.get())):
                             db.insertOrder(bill_info[0][0],item_dic[food_combox.get()])
                         foodSelectionWindow.destroy()
                         table_selection(bill_info[0][1])
@@ -41,66 +41,71 @@ class RestaurantManagementApp(tk.Tk):
                 except:
                     error_label.grid(row=2, column=0, padx=10, pady=5)
                         
+            # Ventana para agregar comida
             foodSelectionWindow = tk.Tk()
             foodSelectionWindow.title("Elección de Alimentos")
             
-            food = tk.Label(foodSelectionWindow, text="Lista de Alimentos")
-            food.grid(row=0, column=0, padx=10, pady=5, sticky=tk.E)
-            
+            # Titulo y Combobox para los elementos de comida
+            tk.Label(foodSelectionWindow, text="Lista de Alimentos").grid(row=0, column=0, padx=10, pady=5, sticky=tk.E)
+    
             items = db.fetchMenu()
             item_names = []
             item_dic = {}
             for item in items:
-                item_names.append(item[0])
-                item_dic[item[0]] = item[1]
+                item_names.append(item[0]) # Lista con los nombres de los alimentos
+                item_dic[item[0]] = item[1] # Diccionario con nombres e ids
             
-
             food_combox = ttk.Combobox(foodSelectionWindow, values=item_names)
             food_combox.grid(row=0, column=1,padx=10, pady=10)
             
-            quantity = tk.Label(foodSelectionWindow, text="Cantidad")
-            quantity.grid(row=1, column=0, padx=10, pady=5, sticky=tk.E)
+            # Titulo y Entry para la cantidad de elementos
+            tk.Label(foodSelectionWindow, text="Cantidad").grid(row=1, column=0, padx=10, pady=5, sticky=tk.E)
             entry_quantity = tk.Entry(foodSelectionWindow)  
             entry_quantity.grid(row=1, column=1, padx=10, pady=5)
             
+            # Label de error, solo se muestra si se ingresaron datos invalidos
             error_label = tk.Label(foodSelectionWindow, text="Datos Inválidos",foreground="red")
             
-            button_login = tk.Button(foodSelectionWindow, text="Agregar", command=lambda: validateFoodSelection())
-            button_login.grid(row=3, column=1, padx=10, pady=5)
-            foodSelectionWindow.mainloop()
+            #Boton para agregar comida
+            tk.Button(foodSelectionWindow, text="Agregar", command=lambda: validateFoodSelection()).grid(row=3, column=1, padx=10, pady=5)
             
+            # Loop
+            foodSelectionWindow.mainloop()
+        
+        # Función principal, se ejecuta al escoger una mesa
         def table_selection(selected_option):
             print(selected_option)
-            if(selected_option!=''):
+            if(selected_option!='' and len(db.fetch_bills(selected_option))>0):
                 a = db.fetch_bills(selected_option)
                 print(a)
-                if(a[0][2]):
-                    state.config(text="Mesa Ocupada")
-                    details.config(text="Cuenta Abierta: "+str((a[0][0])))
-                    details.grid(row=1, column=1, padx=10, pady=10, sticky="w")
-                    btn_open_bill.grid_forget()
-                    btn_add_item.grid(row=2, column=0, padx=10, pady=5, sticky="e")
-                    btn_close_bill.grid(row=2, column=1, padx=10, pady=5, sticky="e")
-                    
-                    orderIterator(db.fetchOrders(a[0][0]))
-                    
-                else:
-                    treeviewDeleter()      
-                    state.config(text="Mesa Libre")
-                    btn_open_bill.grid(row=1, column=1, padx=10, pady=10,sticky="w")
-                    details.grid_forget()
-                    btn_add_item.grid_forget()
-                    btn_close_bill.grid_forget()
+                state.config(text="Mesa Ocupada")
+                details.config(text="Cuenta Abierta: "+str((a[0][0])))
+                details.grid(row=1, column=1, padx=10, pady=10, sticky="w")
+                btn_open_bill.grid_forget()
+                btn_add_item.grid(row=2, column=0, padx=10, pady=5, sticky="e")
+                btn_close_bill.grid(row=2, column=1, padx=10, pady=5, sticky="e")
+                orderIterator(db.fetchOrders(a[0][0]))   
+            else:
+                treeviewDeleter()      
+                state.config(text="Mesa Libre")
+                btn_open_bill.grid(row=1, column=1, padx=10, pady=10,sticky="w")
+                details.grid_forget()
+                btn_add_item.grid_forget()
+                btn_close_bill.grid_forget()
+        
+        # Función borra todos los elementos del treeview para cuando se necesita mostrar diferentes datos
         def treeviewDeleter():
             for i in treeview_orders.get_children():
                 treeview_orders.delete(i)
         
+        # Función itera para enseñar todos los elementos asociados a la cuenta
         def orderIterator(order):   
             treeviewDeleter()         
             for item in order:
                 treeview_orders.insert('', 'end', values=item)
             
-        def formatId(num):
+        # Obtiene el numero de registros y lo convierte en el formato de las id de Cuentas
+        def formatCuentaId(num):
             num+=1
             if(num<10):
                 rslt = 'C00'+str(num)
@@ -110,63 +115,58 @@ class RestaurantManagementApp(tk.Tk):
                 rslt = 'C'+str(num)
             return rslt
         
+        # Función para abrir cuenta nueva
         def open_bill(selected_table):
-            result = messagebox.askquestion("Confirmación", "¿Desea crear una cuenta nueva? \n\nLa cuenta "+formatId(db.nextBill()[0]) +" se asociara con\nla mesa "+selected_table)
+            bill = formatCuentaId(db.nextBill()[0])
+            result = messagebox.askquestion("Confirmación", "¿Desea abrir una cuenta nueva? \n\nLa cuenta "+bill +" se asociara con\nla mesa "+selected_table)
             if result == "yes":
                 print("User clicked Yes")
+                db.create_new_bill(bill, selected_table)
+                table_selection(selected_table)
             else:
-                print("User clicked No")
+                print("No pasa nada si dice que no :)")
                 
-
+        # Frame
         tab = ttk.Frame(self.tab_control)
         self.tab_control.add(tab, text='Pedidos')
-
         ttk.Label(tab, text='Gestión de Pedidos', font=('Helvetica', 18, 'bold')).pack(pady=20)
         form_frame = ttk.Frame(tab, padding=(20, 10))
         form_frame.pack(pady=10, fill='x')
 
-        
-
+        # Se obtienen las mesas
         tables = db.fetch_tables()
+        
+        # Combobox para escoger la mesa
         ttk.Label(form_frame, text="Número de Mesa:").grid(row=0, column=0, padx=10, pady=5, sticky='e')
         table_number_combox = ttk.Combobox(form_frame, values=tables)
         table_number_combox.grid(row=0, column=1, padx=10, pady=5, sticky='w')
         table_number_combox.bind("<<ComboboxSelected>>", lambda _ : table_selection(table_number_combox.get()))
 
-        
+        # Estado de la mesa (ocupada o libre)
         state = ttk.Label(form_frame, text="")
         state.grid(row=1, column=0, padx=10, pady=5, sticky="e")
         
+        # Dice por que cuenta esta ocupada la mesa
         details = ttk.Label(form_frame, text="")
         details.grid(row=1, column=1, padx=10, pady=5, sticky="w")
         
-        
+        # Boton para abrir cuenta nueva
         btn_open_bill = tk.Button(form_frame, text="Abrir Cuenta", command=lambda: open_bill(table_number_combox.get()))
         btn_open_bill.grid_forget()
         
+        # Boton para agregar item de comida
         btn_add_item = tk.Button(form_frame, text="Agregar Alimento", command=lambda: foodSelection(db.fetch_bills(table_number_combox.get())))
         
+        # Boton para cerrar cuenta
         btn_close_bill = tk.Button(form_frame, text="Cerrar Cuenta", command=lambda: print("TODO Aabrir cuenta"))
-
         
+        # Treeview para visualizar elementos agregados a la cuenta
         treeview_orders= ttk.Treeview(tab, columns=('Nombre', 'Precio', 'Hora'), show='headings')
         treeview_orders.heading('Nombre', text='Nombre')
         treeview_orders.heading('Precio', text='Precio')
         treeview_orders.heading('Hora', text='Hora')
         treeview_orders.pack(pady=5, expand=True)
-        
-        
-        # ttk.Label(form_frame, text="Estado de Cuenta: ...").grid(row=1, column=0, padx=10, pady=10, sticky='e')
 
-        # ttk.Label(form_frame, text="Plato/Bebida:").grid(row=1, column=0, padx=10, pady=10, sticky='e')
-        # dish_combobox = ttk.Combobox(form_frame)
-        # dish_combobox.grid(row=1, column=1, padx=10, pady=10, sticky='w')
-
-        # ttk.Label(form_frame, text="Cantidad:").grid(row=2, column=0, padx=10, pady=10, sticky='e')
-        # quantity_entry = ttk.Entry(form_frame)
-        # quantity_entry.grid(row=2, column=1, padx=10, pady=10, sticky='w')
-
-        # ttk.Button(form_frame, text="Agregar al Pedido", command=lambda: self.add_to_order(table_number_entry, dish_combobox, quantity_entry)).grid(row=3, column=1, padx=10, pady=20, sticky='e')
 
     def create_kitchen_tab(self):
         tab = ttk.Frame(self.tab_control)
